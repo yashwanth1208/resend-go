@@ -52,4 +52,21 @@ func main() {
 
 ```
 
+## Retries
+
+Retries are off by default. To enable them, use `RetryTransport`:
+
+```go
+client := resend.NewCustomClient(&http.Client{
+    Timeout:   2 * time.Minute, // covers all attempts
+    Transport: resend.NewRetryTransport(nil, resend.RetryPolicy{}),
+}, apiKey)
+```
+
+- A `429` is retried after its `Retry-After` delay.
+- A `500`, `502`, `503`, `504` or network error is retried with exponential backoff and jitter, but only for `GET`, `HEAD`, `OPTIONS`, `PUT` and `DELETE`, or for requests with an idempotency key. A send without an idempotency key is never retried after these errors, so an email is never sent twice.
+- Other errors are returned right away.
+
+The defaults are 3 retries, a 500ms base delay and a 30s maximum delay.
+
 You can view all the examples in the [examples folder](https://github.com/resend/resend-go/tree/main/examples)
